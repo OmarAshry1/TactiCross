@@ -16,8 +16,8 @@ interface PlayerVsPlayerSetupPropsWithVolume extends PlayerVsPlayerSetupProps {
 }
 
 export default function PlayerVsPlayerSetup({ players, onPlayersChange, onReady, onBack, mainVolume = 1, uiSound = 1 }: PlayerVsPlayerSetupPropsWithVolume) {
-  const [player1Name, setPlayer1Name] = useState(players[0]?.name || 'Player 1');
-  const [player2Name, setPlayer2Name] = useState(players[1]?.name || 'Player 2');
+  const [player1Name, setPlayer1Name] = useState("");
+  const [player2Name, setPlayer2Name] = useState("");
 
   const handleStart = () => {
     const updatedPlayers = [
@@ -42,35 +42,56 @@ export default function PlayerVsPlayerSetup({ players, onPlayersChange, onReady,
           />
         </div>
 
-        {/* Player Input Cards */}
+        {/* Player Input Cards as Images */}
         <div className="space-y-6 mb-8">
-          <div className="bg-gradient-to-r from-blue-600/30 to-blue-500/30 backdrop-blur-sm rounded-2xl p-8 border border-blue-400/20">
-            <div className="flex items-center space-x-4 mb-4">
-              <User className="w-8 h-8 text-blue-400" />
-              <h3 className="text-2xl font-bold text-white">Player 1</h3>
-            </div>
+          <div className="relative flex justify-center">
+            <img
+              src="/assets/Menu-Background/Assets/Player_cards/player1.png"
+              alt="Player 1 Card"
+              className="w-full max-w-[460px] rounded-2xl shadow-lg select-none pointer-events-none"
+              draggable="false"
+              style={{ userSelect: 'none', height: '130px', width: '370px' }}
+            />
             <input
               type="text"
               value={player1Name}
               onChange={(e) => setPlayer1Name(e.target.value)}
-              placeholder="Enter Player 1 name"
-              className="w-full bg-white/10 backdrop-blur-sm text-white placeholder-white/50 px-4 py-3 rounded-xl border border-white/20 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition-all duration-300"
+              placeholder="Player 1"
+              className="absolute left-1/2 top-[63%] -translate-x-1/2 -translate-y-1/2 bg-transparent text-black px-2 py-2 rounded-xl border border-black/20 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition-all duration-300 text-center text-2xl font-bold shadow-md"
               maxLength={20}
+              style={{
+                zIndex: 2,
+                fontFamily: 'RetroPix, monospace',
+                letterSpacing: '1px',
+                width: '47%',
+                background: 'transparent',
+                color: player1Name ? 'black' : '#888',
+              }}
             />
           </div>
-
-          <div className="bg-gradient-to-r from-red-600/30 to-red-500/30 backdrop-blur-sm rounded-2xl p-8 border border-red-400/20">
-            <div className="flex items-center space-x-4 mb-4">
-              <User className="w-8 h-8 text-red-400" />
-              <h3 className="text-2xl font-bold text-white">Player 2</h3>
-            </div>
+          <div className="relative flex justify-center">
+            <img
+              src="/assets/Menu-Background/Assets/Player_cards/player2.png"
+              alt="Player 2 Card"
+              className="w-full max-w-[460px] rounded-2xl shadow-lg select-none pointer-events-none"
+              draggable="false"
+              style={{ userSelect: 'none', height: '130px', width: '370px' }}
+            />
             <input
               type="text"
               value={player2Name}
               onChange={(e) => setPlayer2Name(e.target.value)}
-              placeholder="Enter Player 2 name"
-              className="w-full bg-white/10 backdrop-blur-sm text-white placeholder-white/50 px-4 py-3 rounded-xl border border-white/20 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-400/30 transition-all duration-300"
+              placeholder="Player 2"
+              className="absolute left-1/2 top-[62%] -translate-x-1/2 -translate-y-1/2 bg-transparent text-black px-2 py-2 rounded-xl border border-black/20 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-400/30 transition-all duration-300 text-center text-2xl font-bold shadow-md"
               maxLength={20}
+              style={{
+                zIndex: 2,
+                fontFamily: 'RetroPix, monospace',
+                letterSpacing: '1px',
+                width: '47%',
+                background: 'transparent',
+                color: player2Name ? 'black' : '#888',
+              }}
             />
           </div>
         </div>
