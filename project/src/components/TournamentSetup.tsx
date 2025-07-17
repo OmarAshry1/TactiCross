@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Trophy, Users, Play } from 'lucide-react';
 import SoundButton from './SoundButton';
 import { Player } from '../types/game';
+import AnimatedBackground from './AnimatedBackground';
 
 interface TournamentSetupProps {
-  onStart: (players: Player[]) => void;
+  onStart: (players: Player[], playerCount: number) => void;
   onBack: () => void;
   mainVolume?: number;
   uiSound?: number;
@@ -59,14 +60,32 @@ export default function TournamentSetup({ onStart, onBack, mainVolume = 1, uiSou
       });
     }
 
-    onStart(finalPlayers);
+    onStart(finalPlayers, playerCount);
   };
 
   const isValidSetup = playerNames.slice(0, playerCount).every(name => name.trim() !== '');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 flex items-center justify-center p-8">
-      <div className="max-w-4xl w-full">
+    <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+      <AnimatedBackground className="z-0" />
+      {/* Back Button - fixed top left */}
+      <div className="fixed top-8 left-8 z-50">
+        <SoundButton
+          onClick={onBack}
+          className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
+          style={{ background: 'none', border: 'none', padding: 0 }}
+          mainVolume={mainVolume}
+          uiSound={uiSound}
+        >
+          <img
+            src="/assets/Menu-Background/Assets/back_button.png"
+            alt="Back"
+            className="w-[240px] h-auto select-none"
+            draggable="false"
+          />
+        </SoundButton>
+      </div>
+      <div className="max-w-4xl w-full relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
           <img
@@ -76,9 +95,8 @@ export default function TournamentSetup({ onStart, onBack, mainVolume = 1, uiSou
             style={{ display: 'block' }}
           />
         </div>
-
-        {/* Player Count Selection */}
-        <div className="flex flex-col items-center mb-8">
+        {/* Player Count Selection and Let's Play button in a row */}
+        <div className="flex flex-row items-center justify-center mb-8 gap-6">
           <div className="relative w-[440px] h-[140px] flex items-center justify-center select-none">
             <img
               src="/assets/Menu-Background/Assets/Tournament_Player_num.png"
@@ -130,8 +148,23 @@ export default function TournamentSetup({ onStart, onBack, mainVolume = 1, uiSou
               <span>{playerCount}</span>
             </div>
           </div>
+          {/* Let's Play button right next to player count card */}
+          <SoundButton
+            onClick={handleStart}
+            disabled={!isValidSetup}
+            className={`transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none ${!isValidSetup ? 'opacity-50 cursor-not-allowed' : ''}`}
+            style={{ background: 'none', border: 'none', padding: 0 }}
+            mainVolume={mainVolume}
+            uiSound={uiSound}
+          >
+            <img
+              src="/assets/Menu-Background/Assets/play_button.png"
+              alt="Let's Play"
+              className="w-[240px] h-auto select-none"
+              draggable="false"
+            />
+          </SoundButton>
         </div>
-
         {/* Player Names Input */}
         <div className="w-full flex justify-center items-center" style={{ minHeight: '320px' }}>
           <div
@@ -167,7 +200,7 @@ export default function TournamentSetup({ onStart, onBack, mainVolume = 1, uiSou
                     value={playerNames[index] || ''}
                     onChange={(e) => handlePlayerNameChange(index, e.target.value)}
                     placeholder={`Player ${index + 1}`}
-                    className="absolute left-1/2 top-[62%] -translate-x-1/2 -translate-y-1/2 bg-transparent text-black px-2 py-2 rounded-xl border border-black/20 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition-all duration-300 text-center text-2xl font-bold shadow-md"
+                    className="absolute left-1/2 top-[62%] -translate-x-1/2 -translate-y-1/2 bg-transparent text-black px-2 py-2 rounded-xl border border-black/20 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 transition-all duration-300 text-center text-2xl font-bold shadow-md retropix"
                     maxLength={20}
                     style={{
                       zIndex: 2,
@@ -184,39 +217,6 @@ export default function TournamentSetup({ onStart, onBack, mainVolume = 1, uiSou
               return [...playerCells, ...emptyCells];
             })()}
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-center space-x-4 mt-8">
-          <SoundButton
-            onClick={onBack}
-            className="transition-transform duration-300 focus:outline-none drop-shadow-lg hover:scale-110"
-            style={{ background: 'none', border: 'none', padding: 0 }}
-            mainVolume={mainVolume}
-            uiSound={uiSound}
-          >
-            <img
-              src="/assets/Menu-Background/Assets/back_button.png"
-              alt="Back"
-              className="w-[240px] h-auto select-none"
-              draggable="false"
-            />
-          </SoundButton>
-          <SoundButton
-            onClick={handleStart}
-            disabled={!isValidSetup}
-            className={`transition-transform duration-300 focus:outline-none drop-shadow-lg hover:scale-110 -mt-[3px] ${isValidSetup ? '' : 'opacity-50 cursor-not-allowed'}`}
-            style={{ background: 'none', border: 'none', padding: 0 }}
-            mainVolume={mainVolume}
-            uiSound={uiSound}
-          >
-            <img
-              src="/assets/Menu-Background/Assets/play_button.png"
-              alt="Play"
-              className="w-[270px] h-auto select-none"
-              draggable="false"
-            />
-          </SoundButton>
         </div>
       </div>
     </div>

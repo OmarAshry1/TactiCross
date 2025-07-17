@@ -126,3 +126,13 @@ html {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+@font-face {
+  font-family: 'Retropix';
+  src: url('/assets/fonts/retropix.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+.retropix {
+  font-family: 'Retropix', monospace;
+}

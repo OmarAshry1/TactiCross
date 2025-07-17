@@ -10,7 +10,37 @@ interface AISetupProps {
   uiSound?: number;
 }
 
+const bmoFrames = [
+  '/assets/Menu-Background/Assets/bmo1.png',
+  '/assets/Menu-Background/Assets/bmo2.png',
+  '/assets/Menu-Background/Assets/bmo3.png',
+];
+
+const BMOAnimation: React.FC<{ fps?: number; size?: number }> = ({ fps = 6, size = 220 }) => {
+  const [showStatic, setShowStatic] = React.useState(true);
+  const [frame, setFrame] = React.useState(0);
+  React.useEffect(() => {
+    const timeout = setTimeout(() => setShowStatic(false), 1000);
+    return () => clearTimeout(timeout);
+  }, []);
+  React.useEffect(() => {
+    if (showStatic) return;
+    const id = setInterval(() => setFrame(f => (f + 1) % bmoFrames.length), 1000 / fps);
+    return () => clearInterval(id);
+  }, [fps, showStatic]);
+  return (
+    <img
+      src={showStatic ? '/assets/Menu-Background/Assets/bmo0.png' : bmoFrames[frame]}
+      alt="BMO"
+      style={{ width: size, height: size, imageRendering: 'pixelated', display: 'block' }}
+      className="opacity-100"
+      draggable={false}
+    />
+  );
+};
+
 export default function AISetup({ onLevelSelect, onBack, mainVolume = 1, uiSound = 1 }: AISetupProps) {
+  const [hovered, setHovered] = React.useState<null | 'easy' | 'medium' | 'hard'>(null);
   const aiLevels = [
     {
       id: 'easy' as AILevel,
@@ -41,85 +71,103 @@ export default function AISetup({ onLevelSelect, onBack, mainVolume = 1, uiSound
     }
   ];
 
+  // Helper to get the correct BMO image
+  const getBMOImage = () => {
+    if (hovered === 'easy') return '/assets/Menu-Background/Assets/bemo_easy.png';
+    if (hovered === 'medium') return '/assets/Menu-Background/Assets/bmo_medium.png';
+    if (hovered === 'hard') return '/assets/Menu-Background/Assets/bemo_hard.png';
+    return null;
+  };
+  console.log('hovered:', hovered);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 flex items-center justify-center p-8">
-      <div className="max-w-4xl w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
+    <div className="min-h-screen flex items-center justify-center p-8 z-10" style={{ opacity: 1, filter: 'none' }}>
+      <div className="max-w-4xl w-full flex flex-row items-center justify-center relative z-10" style={{ height: 320 }}>
+        {/* BMO Animation (left) */}
+        <div className="flex-shrink-0 flex items-center justify-center" style={{ width: 240 }}>
+          {getBMOImage() ? (
+            <img
+              src={getBMOImage() || ''}
+              alt="BMO"
+              style={{ width: 220, height: 220, imageRendering: 'pixelated', display: 'block' }}
+              className="opacity-100"
+              draggable={false}
+            />
+          ) : (
+          <BMOAnimation fps={6} size={220} />
+          )}
+        </div>
+        {/* Difficulty.png with overlaid buttons (right) */}
+        <div className="relative flex items-center justify-center" style={{ width: 520, height: 320, marginLeft: 32 }}>
           <img
-            src="public/assets/Menu-Background/Assets/Ai_Setup.png"
-            alt="AI Setup"
-            className="mx-auto mb-4 max-w-[320px] w-[320px] drop-shadow-2xl block"
-            style={{ display: 'block' }}
+            src="/assets/Menu-Background/Assets/Difficulty.png"
+            alt="Difficulty Container"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-[520px] h-auto select-none pointer-events-none"
+            style={{ zIndex: 1 }}
+            draggable="false"
           />
-        </div>
-
-        {/* AI Level Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {aiLevels.map((level) => (
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full flex flex-row items-center justify-center gap-4" style={{ zIndex: 2, height: '100%', marginTop: '65px' }}>
             <button
-              key={level.id}
-              onClick={() => onLevelSelect(level.id)}
-              className={`group relative bg-gradient-to-br ${level.color} hover:${level.hoverColor} rounded-2xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl`}
+              onClick={() => onLevelSelect('easy')}
+              onMouseEnter={() => setHovered('easy')}
+              onMouseLeave={() => setHovered(null)}
+              className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
+              style={{ background: 'none', border: 'none', padding: 0 }}
             >
-              <div className="text-center">
-                <level.icon className="w-16 h-16 text-white mx-auto mb-4 group-hover:animate-bounce" />
-                <h3 className="text-2xl font-bold text-white mb-3">{level.name}</h3>
-                <p className="text-white/80 mb-4">{level.description}</p>
-                
-                <div className="space-y-2">
-                  {level.details.map((detail, index) => (
-                    <div key={index} className="text-sm text-white/70">
-                      • {detail}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="absolute inset-0 bg-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <img
+                src="/assets/Menu-Background/Assets/easy.png"
+                alt="Easy"
+                className="w-[150px] h-auto select-none opacity-100"
+                draggable="false"
+              />
             </button>
-          ))}
-        </div>
-
-        {/* Power-ups Preview */}
-        <div className="bg-gradient-to-r from-purple-600/30 to-pink-600/30 backdrop-blur-sm rounded-2xl p-4 border border-purple-400/20 mb-4">
-          <h3 className="text-xl font-bold text-white mb-4">Available Power-ups</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-3xl mb-2">❤️</div>
-              <div className="text-white font-semibold">Heal</div>
-              <div className="text-white/70 text-sm">Restore 1000 HP</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl mb-2">⚡</div>
-              <div className="text-white font-semibold">2x Damage</div>
-              <div className="text-white/70 text-sm">Double attack power</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl mb-2">🔨</div>
-              <div className="text-white font-semibold">Hammer</div>
-              <div className="text-white/70 text-sm">Reset AI piece</div>
-            </div>
+            <button
+              onClick={() => onLevelSelect('medium')}
+              onMouseEnter={() => setHovered('medium')}
+              onMouseLeave={() => setHovered(null)}
+              className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
+              style={{ background: 'none', border: 'none', padding: 0 }}
+            >
+              <img
+                src="/assets/Menu-Background/Assets/medium.png"
+                alt="Medium"
+                className="w-[150px] h-auto select-none opacity-100"
+                draggable="false"
+              />
+            </button>
+            <button
+              onClick={() => onLevelSelect('hard')}
+              onMouseEnter={() => setHovered('hard')}
+              onMouseLeave={() => setHovered(null)}
+              className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
+              style={{ background: 'none', border: 'none', padding: 0 }}
+            >
+              <img
+                src="/assets/Menu-Background/Assets/hard.png"
+                alt="Hard"
+                className="w-[150px] h-auto select-none opacity-100"
+                draggable="false"
+              />
+            </button>
           </div>
         </div>
-
-        {/* Back Button */}
-        <div className="text-center mt-4">
-          <SoundButton
-            onClick={onBack}
-            className="transition-transform duration-300 focus:outline-none drop-shadow-lg hover:scale-110"
-            style={{ background: 'none', border: 'none', padding: 0 }}
-            mainVolume={mainVolume}
-            uiSound={uiSound}
-          >
-            <img
-              src="/assets/Menu-Background/Assets/back_button.png"
-              alt="Back"
-              className="w-[240px] h-auto select-none"
-              draggable="false"
-            />
-          </SoundButton>
-        </div>
+      </div>
+      {/* Back Button */}
+      <div className="text-center mt-4 absolute left-1/2 bottom-8 -translate-x-1/2">
+        <SoundButton
+          onClick={onBack}
+          className="transition-transform duration-300 focus:outline-none drop-shadow-lg hover:scale-110"
+          style={{ background: 'none', border: 'none', padding: 0 }}
+          mainVolume={mainVolume}
+          uiSound={uiSound}
+        >
+          <img
+            src="/assets/Menu-Background/Assets/back_button.png"
+            alt="Back"
+            className="w-[240px] h-auto select-none"
+            draggable="false"
+          />
+        </SoundButton>
       </div>
     </div>
   );

@@ -54,13 +54,13 @@ export default function AnimatedBackground({ className = '' }: { className?: str
       <img
         src={isCrossfading ? prevFrame : currentFrame}
         alt="background frame"
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${isCrossfading ? 'opacity-100' : 'opacity-0'} ${className}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${isCrossfading ? 'opacity-100' : 'opacity-0'} z-0 ${className}`}
         style={{ pointerEvents: 'none' }}
       />
       <img
         src={currentFrame}
         alt="background frame"
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${isCrossfading ? 'opacity-0' : 'opacity-100'} ${className}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${isCrossfading ? 'opacity-0' : 'opacity-100'} z-0 ${className}`}
         style={{ pointerEvents: 'none' }}
       />
     </>

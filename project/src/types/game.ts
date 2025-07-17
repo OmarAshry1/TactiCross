@@ -9,7 +9,8 @@ export type GameState =
   | 'ai-setup' 
   | 'ai-survival' 
   | 'settings' 
-  | 'game';
+  | 'game'
+  | 'map-revealed';
 
 export type GameMode = 'pvp' | 'tournament' | 'ai';
 
@@ -22,7 +23,9 @@ export type AILevel = 'easy' | 'medium' | 'hard';
 export interface Player {
   id: number;
   name: string;
-  creature: CreatureType;
+  creature: CreatureType | string;
+  leftIdle?: string;
+  rightIdle?: string;
   isAI: boolean;
   hp?: number;
   wins?: number;
@@ -45,7 +48,7 @@ export interface GamePiece {
   playerId: number;
   position: BoardPosition;
   hasMoved: boolean;
-  creature: CreatureType;
+  creature: CreatureType | string;
 }
 
 export interface PowerUp {

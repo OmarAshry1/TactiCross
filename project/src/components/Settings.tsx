@@ -44,7 +44,7 @@ export default function Settings({ settings, onSettingsChange, onBack, mainVolum
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
       <div className="flex items-center space-x-3 mb-4">
         <Icon className={`w-6 h-6 ${color}`} />
-        <h3 className="text-xl font-bold text-white">{label}</h3>
+        <h3 className="text-xl font-bold text-black">{label}</h3>
       </div>
       
       <div className="flex items-center space-x-4">
@@ -127,7 +127,7 @@ export default function Settings({ settings, onSettingsChange, onBack, mainVolum
       </div>
 
       {/* Custom CSS for slider */}
-      <style jsx>{`
+      <style>{`
         .slider::-webkit-slider-thumb {
           appearance: none;
           width: 20px;

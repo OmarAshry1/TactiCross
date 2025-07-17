@@ -48,7 +48,7 @@ export default function StartingPage({ onPlay, onSettings, mainVolume = 1, uiSou
             <img
               src="/assets/Menu-Background/Assets/title.png"
               alt="TactiCross Title"
-              className="mx-auto mb-2 max-w-[1200px] w-[1000px] max-w-[90vw] drop-shadow-2xl floating-title"
+              className="mx-auto mb-2 max-w-[80vw] w-[70vw] max-w-[90vw] drop-shadow-2xl floating-title"
               style={{ height: 'auto' }}
             />
             <div className="flex flex-col items-center space-y-2 mt-2">
@@ -63,7 +63,7 @@ export default function StartingPage({ onPlay, onSettings, mainVolume = 1, uiSou
                 <img
                   src="/assets/Menu-Background/Assets/play_button.png"
                   alt="Play Button"
-                  className="w-[320px] h-auto select-none"
+                  className="w-[20vw] h-auto select-none"
                   draggable="false"
                 />
               </SoundButton>
@@ -78,7 +78,7 @@ export default function StartingPage({ onPlay, onSettings, mainVolume = 1, uiSou
                 <img
                   src="/assets/Menu-Background/Assets/settings_button.png"
                   alt="Settings Button"
-                  className="w-[310px] h-auto select-none"
+                  className="w-[20vw] h-auto select-none"
                   draggable="false"
                 />
               </SoundButton>

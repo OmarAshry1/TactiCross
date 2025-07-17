@@ -218,13 +218,35 @@ export default function GameBoard({ map, players, gameMode, onGameEnd, onBack, m
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${mapConfig.gradient} flex items-center justify-center p-4`}>
-      <div className="max-w-4xl w-full">
+      <div className="max-w-4xl w-full relative">
+        {/* Edge Creatures */}
+        {/* Player 1 (left) */}
+        {players[0]?.leftIdle && (
+          <img
+            src={players[0].leftIdle}
+            alt="Player 1 Creature"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-24 h-24 z-10 select-none pointer-events-none"
+            draggable="false"
+            style={{ userSelect: 'none' }}
+          />
+        )}
+        {/* Player 2 (right) */}
+        {players[1]?.rightIdle && (
+          <img
+            src={players[1].rightIdle}
+            alt="Player 2 Creature"
+            className="absolute right-0 top-1/2 -translate-y-1/2 w-24 h-24 z-10 select-none pointer-events-none"
+            draggable="false"
+            style={{ userSelect: 'none' }}
+          />
+        )}
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-2xl">
             {mapConfig.name}
           </h1>
-          <div className="text-white/80 text-lg">
+          {/* Header player names */}
+          <div className="text-white/80 text-lg retropix">
             {players[0]?.name} vs {players[1]?.name}
           </div>
         </div>
@@ -233,7 +255,7 @@ export default function GameBoard({ map, players, gameMode, onGameEnd, onBack, m
         <div className="flex justify-center items-center space-x-8 mb-8">
           <div className="bg-blue-600/30 backdrop-blur-sm rounded-xl p-4 border border-blue-400/20">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">{players[0]?.name}</div>
+              <div className="text-2xl font-bold text-white retropix">{players[0]?.name}</div>
               <div className="text-4xl font-bold text-blue-400">{player1Wins}</div>
             </div>
           </div>
@@ -242,7 +264,7 @@ export default function GameBoard({ map, players, gameMode, onGameEnd, onBack, m
           
           <div className="bg-red-600/30 backdrop-blur-sm rounded-xl p-4 border border-red-400/20">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">{players[1]?.name}</div>
+              <div className="text-2xl font-bold text-white retropix">{players[1]?.name}</div>
               <div className="text-4xl font-bold text-red-400">{player2Wins}</div>
             </div>
           </div>
@@ -251,7 +273,8 @@ export default function GameBoard({ map, players, gameMode, onGameEnd, onBack, m
         {/* Current Player Indicator */}
         {!winner && (
           <div className="text-center mb-6">
-            <div className="text-xl font-bold text-white">
+            {/* Current player indicator */}
+            <div className="text-xl font-bold text-white retropix">
               {players[currentPlayer - 1]?.name}'s Turn
             </div>
             <div className="text-white/60">
@@ -287,24 +310,66 @@ export default function GameBoard({ map, players, gameMode, onGameEnd, onBack, m
 
         {/* Win Animation */}
         {winner && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 text-center">
+          <>
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 49 }} />
+            <div
+              style={{
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                zIndex: 50,
+                marginLeft: '60px', // Adjust this value to move the win card horizontally
+                marginTop: '40px',  // Adjust this value to move the win card vertically
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: '1rem',
+                padding: '2rem',
+                textAlign: 'center',
+                backdropFilter: 'blur(8px)',
+                display: 'inline-block',
+              }}
+              className="mb-6"
+            >
               <Crown className="w-16 h-16 text-yellow-400 mx-auto mb-4 animate-bounce" />
-              <h2 className="text-4xl font-bold text-white mb-4">
+              {/* Winner modal */}
+              <h2 className="text-4xl font-bold text-white mb-4 retropix">
                 {winner.name} Wins!
               </h2>
               <div className="text-xl text-white/80">
                 Round {Math.max(player1Wins, player2Wins)}
               </div>
             </div>
-          </div>
+            <SoundButton
+              onClick={onBack}
+              style={{
+                position: 'fixed',
+                left: 5,
+                top: 0,
+                marginLeft: '180px', // Adjust this value to move the back button horizontally
+                marginTop: '220px', // Adjust this value to move the back button vertically (relative to the top of the screen)
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                zIndex: 51,
+              }}
+              className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
+              mainVolume={mainVolume}
+              uiSound={uiSound}
+            >
+              <img
+                src="/assets/Menu-Background/Assets/back_button.png"
+                alt="Back"
+                className="w-[260px] h-auto select-none"
+                draggable="false"
+              />
+            </SoundButton>
+          </>
         )}
 
         {/* Action Buttons */}
         <div className="flex justify-center space-x-4">
           <SoundButton
             onClick={onBack}
-            className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
+            className="ml-20 transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
             style={{ background: 'none', border: 'none', padding: 0 }}
             mainVolume={mainVolume}
             uiSound={uiSound}
@@ -316,14 +381,6 @@ export default function GameBoard({ map, players, gameMode, onGameEnd, onBack, m
               draggable="false"
             />
           </SoundButton>
-
-          <button
-            onClick={resetGame}
-            className="group flex items-center space-x-2 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
-          >
-            <RotateCcw className="w-5 h-5 group-hover:animate-spin" />
-            <span>Reset</span>
-          </button>
         </div>
       </div>
     </div>
