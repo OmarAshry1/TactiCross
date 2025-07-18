@@ -89,7 +89,7 @@ export default function TournamentSetup({ onStart, onBack, mainVolume = 1, uiSou
         {/* Header */}
         <div className="text-center mb-8">
           <img
-            src="public/assets/Menu-Background/Assets/Tournament_Setup.png"
+            src="/assets/Menu-Background/Assets/Tournament_Setup.png"
             alt="Tournament Setup"
             className="mx-auto mb-4 max-w-[320px] w-[320px] drop-shadow-2xl block"
             style={{ display: 'block' }}
