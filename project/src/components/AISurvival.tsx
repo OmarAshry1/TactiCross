@@ -538,8 +538,8 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
               position: 'absolute',
               top: creature.top,
               left: creature.left,
-              width: 220,
-              height: 220,
+              width: 120,
+              height: 120,
               imageRendering: 'pixelated',
               zIndex: 5,
               transform: 'translate(-50%, -50%)',
@@ -553,28 +553,28 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
       {!isAnimatingCreature && (
         <>
           {/* Player creatures (right) */}
-          <div style={{ position: 'absolute', right: '25%', top: '40%', transform: 'translateY(-50%)', zIndex: 3, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ position: 'absolute', right: '27%', top: '40%', transform: 'translateY(-50%)', zIndex: 3, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {[0, 1].map(i => (
               !creatureStates[i].finished && animatingIndex !== i && (
                 <img
                   key={i}
                   src={getIdleFrames(playerCreature, 'left')[frame]}
                   alt="P1 Creature"
-                  style={{ width: 150, height: 150, imageRendering: 'pixelated', marginBottom: 6 }}
+                  style={{ width: 120, height: 120, imageRendering: 'pixelated', marginBottom: 6 }}
                   draggable="false"
                 />
               )
             ))}
           </div>
           {/* AI creatures (left) */}
-          <div style={{ position: 'absolute', left: '25%', top: '50%', transform: 'translateY(-50%)', zIndex: 3, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ position: 'absolute', left: '27%', top: '50%', transform: 'translateY(-50%)', zIndex: 3, display: 'flex', flexDirection: 'column', gap: 16 }}>
             {[2, 3].map(i => (
               !creatureStates[i].finished && animatingIndex !== i && (
                 <img
                   key={i}
                   src={getIdleFrames(aiCreature, 'right')[frame]}
                   alt="AI Creature"
-                  style={{ width: 150, height: 150, imageRendering: 'pixelated', marginBottom: 6 }}
+                  style={{ width: 120, height: 120, imageRendering: 'pixelated', marginBottom: 6 }}
                   draggable="false"
                 />
               )
@@ -589,14 +589,17 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
             <div
               key={rIdx + '-' + cIdx}
               className="w-24 h-24 flex items-center justify-center bg-white/40 rounded-lg border-2 border-white/60"
-              style={{ fontSize: 50, fontWeight: 'bold', color: cell.owner === 1 ? '#fbbf24' : cell.owner === 2 ? '#60a5fa' : '#222' ,  width: 180,
-                height: 180,}}
+              style={{ fontSize: 50, 
+                fontWeight: 'bold'
+                , color: cell.owner === 1 ? '#fbbf24' : cell.owner === 2 ? '#60a5fa' : '#222' ,
+                width: 130,
+                height: 130,}}
               onClick={() => { if (currentPlayer === 1) playClickSound(); handleCellClick(rIdx, cIdx); }}
             >
               {cell.owner === 1 ? (
-                <img src={getPlayerIcon(1, currentMap)} alt="P1" style={{ width: 160, height: 160 }} />
+                <img src={getPlayerIcon(1, currentMap)} alt="P1" style={{ width: 120, height: 120 }} />
               ) : cell.owner === 2 ? (
-                <img src={getPlayerIcon(2, currentMap)} alt="AI" style={{ width: 160, height: 160 }} />
+                <img src={getPlayerIcon(2, currentMap)} alt="AI" style={{ width: 120, height: 120 }} />
               ) : ''}
             </div>
           ))
