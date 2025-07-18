@@ -18,7 +18,7 @@ The starting page features a beautiful animated mountain background using assets
 - **Auto-play**: Music starts automatically (with user interaction)
 
 ### 🎮 Game Features
-- **Multiple Game Modes**: Player vs Player, AI, Tournament, Survival
+- **Multiple Game Modes**: Player vs Player, Survival(Ai)
 - **Map Selection**: Choose from different themed environments
 - **Player Customization**: Customize your game experience
 - **Settings**: Adjust game preferences
