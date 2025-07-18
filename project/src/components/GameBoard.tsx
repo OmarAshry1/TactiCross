@@ -311,57 +311,68 @@ export default function GameBoard({ map, players, gameMode, onGameEnd, onBack, m
         {/* Win Animation */}
         {winner && (
           <>
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 49 }} />
+            {console.log('Winner overlay rendered')}
+            {/* Debug overlay: red */}
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(255,0,0,0.7)',
+              zIndex: 49
+            }} />
+            {/* Centered modal and button */}
             <div
               style={{
                 position: 'fixed',
-                left: 0,
-                top: 0,
+                inset: 0,
                 zIndex: 50,
-                marginLeft: '60px', // Adjust this value to move the win card horizontally
-                marginTop: '40px',  // Adjust this value to move the win card vertically
-                background: 'rgba(255,255,255,0.1)',
-                borderRadius: '1rem',
-                padding: '2rem',
-                textAlign: 'center',
-                backdropFilter: 'blur(8px)',
-                display: 'inline-block',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
-              className="mb-6"
             >
-              <Crown className="w-16 h-16 text-yellow-400 mx-auto mb-4 animate-bounce" />
-              {/* Winner modal */}
-              <h2 className="text-4xl font-bold text-white mb-4 retropix">
-                {winner.name} Wins!
-              </h2>
-              <div className="text-xl text-white/80">
-                Round {Math.max(player1Wins, player2Wins)}
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.13)',
+                  borderRadius: '2rem',
+                  padding: '4rem 4rem',
+                  textAlign: 'center',
+                  minWidth: '520px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+                }}
+                className="mb-10"
+              >
+                <Crown className="w-32 h-32 text-yellow-400 mx-auto mb-8 animate-bounce" />
+                <h2 className="text-6xl font-bold text-white mb-8 retropix">
+                  {winner.name} Wins!
+                </h2>
+                <div className="text-3xl text-white/80 retropix">
+                  Round {Math.max(player1Wins, player2Wins)}
+                </div>
               </div>
+              <SoundButton
+                onClick={onBack}
+                className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
+                style={{
+                  width: '380px',
+                  height: '80px',
+                  fontSize: '2.2rem',
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  zIndex: 51
+                }}
+                mainVolume={mainVolume}
+                uiSound={uiSound}
+              >
+                <img
+                  src="/assets/Menu-Background/Assets/back_button.png"
+                  alt="Back"
+                  className="w-full h-auto select-none"
+                  draggable="false"
+                />
+              </SoundButton>
             </div>
-            <SoundButton
-              onClick={onBack}
-              style={{
-                position: 'fixed',
-                left: 5,
-                top: 0,
-                marginLeft: '180px', // Adjust this value to move the back button horizontally
-                marginTop: '220px', // Adjust this value to move the back button vertically (relative to the top of the screen)
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                zIndex: 51,
-              }}
-              className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
-              mainVolume={mainVolume}
-              uiSound={uiSound}
-            >
-              <img
-                src="/assets/Menu-Background/Assets/back_button.png"
-                alt="Back"
-                className="w-[260px] h-auto select-none"
-                draggable="false"
-              />
-            </SoundButton>
           </>
         )}
 

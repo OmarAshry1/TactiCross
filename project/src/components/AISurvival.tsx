@@ -516,7 +516,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
         <img src={"/assets/Menu-Background/Assets/streak.png"} alt="Streak" style={{ width: 300, height: 180, position: 'relative' }} />
         {/* In the streak card, add className="retropix" to the streak number if you want, or to any player name display */}
         <span className="retropix" style={{ position: 'absolute', top: 85, left: 90, width: 100, textAlign: 'center', color: 'black', fontWeight: 'bold', fontSize: 32 }}>{streak}</span>
-      </div>
+          </div>
       {/* Animated creatures moving across the map - only show when animating */}
       {creatureStates.map((creature, index) => {
         if (!isAnimatingCreature || animatingIndex !== index || creature.finished) return null;
