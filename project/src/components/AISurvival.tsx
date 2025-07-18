@@ -194,7 +194,7 @@ const bgColors: Record<string, string> = {
 const hoverSound = '/assets/Menu-Background/music/button_hover.wav';
 const clickSound = '/assets/Menu-Background/music/Button_click.wav';
 
-export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlobalMusic, unmuteGlobalMusic }: AISurvivalProps) {
+export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlobalMusic, unmuteGlobalMusic, onAIGameBack }: AISurvivalProps & { onAIGameBack?: () => void }) {
   // Survival state
   const [currentMap, setCurrentMap] = useState<MapTheme>('lava');
   const [playerCreature, setPlayerCreature] = useState('Slime1');
@@ -468,7 +468,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+        audioRef.current.currentTime = 0; // Ensure AI music is fully stopped
       }
       if (unmuteGlobalMusic) unmuteGlobalMusic();
     };
@@ -589,12 +589,9 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
             <div
               key={rIdx + '-' + cIdx}
               className="w-24 h-24 flex items-center justify-center bg-white/40 rounded-lg border-2 border-white/60"
-              style={{ fontSize: 50, 
-                fontWeight: 'bold'
-                , color: cell.owner === 1 ? '#fbbf24' : cell.owner === 2 ? '#60a5fa' : '#222' ,
-                width: 130,
-                height: 130,}}
+              style={{ fontSize: 50, fontWeight: 'bold', color: cell.owner === 1 ? '#fbbf24' : cell.owner === 2 ? '#60a5fa' : '#222', width: 130, height: 130 }}
               onClick={() => { if (currentPlayer === 1) playClickSound(); handleCellClick(rIdx, cIdx); }}
+              onTouchStart={() => { if (currentPlayer === 1) playClickSound(); handleCellClick(rIdx, cIdx); }}
             >
               {cell.owner === 1 ? (
                 <img src={getPlayerIcon(1, currentMap)} alt="P1" style={{ width: 120, height: 120 }} />
@@ -637,6 +634,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
                 audioRef.current.currentTime = 0;
               }
               if (unmuteGlobalMusic) unmuteGlobalMusic();
+              if (onAIGameBack) onAIGameBack();
               setStreak(0); // Reset streak on AI win back
               setShowLossScreen(false);
               onBack();
@@ -676,6 +674,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
               audioRef.current.currentTime = 0;
             }
             if (unmuteGlobalMusic) unmuteGlobalMusic();
+            if (onAIGameBack) onAIGameBack();
             onBack();
           }}
           style={{

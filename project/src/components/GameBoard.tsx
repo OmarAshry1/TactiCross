@@ -290,6 +290,7 @@ export default function GameBoard({ map, players, gameMode, onGameEnd, onBack, m
               <button
                 key={`${rowIndex}-${colIndex}`}
                 onClick={() => handleCellClick(rowIndex, colIndex)}
+                onTouchStart={() => handleCellClick(rowIndex, colIndex)}
                 className={`
                   w-20 h-20 rounded-lg border-2 transition-all duration-300 transform hover:scale-105
                   ${mapConfig.cellColor} ${mapConfig.cellHover}

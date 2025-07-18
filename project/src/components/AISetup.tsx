@@ -8,6 +8,7 @@ interface AISetupProps {
   onBack: () => void;
   mainVolume?: number;
   uiSound?: number;
+  onAIDifficultySelect?: () => void;
 }
 
 const bmoFrames = [
@@ -39,7 +40,7 @@ const BMOAnimation: React.FC<{ fps?: number; size?: number }> = ({ fps = 6, size
   );
 };
 
-export default function AISetup({ onLevelSelect, onBack, mainVolume = 1, uiSound = 1 }: AISetupProps) {
+export default function AISetup({ onLevelSelect, onBack, mainVolume = 1, uiSound = 1, onAIDifficultySelect }: AISetupProps) {
   const [hovered, setHovered] = React.useState<null | 'easy' | 'medium' | 'hard'>(null);
   const aiLevels = [
     {
@@ -108,7 +109,10 @@ export default function AISetup({ onLevelSelect, onBack, mainVolume = 1, uiSound
           />
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full flex flex-row items-center justify-center gap-4" style={{ zIndex: 2, height: '100%', marginTop: '65px' }}>
             <button
-              onClick={() => onLevelSelect('easy')}
+              onClick={() => {
+                if (onAIDifficultySelect) onAIDifficultySelect();
+                onLevelSelect('easy');
+              }}
               onMouseEnter={() => setHovered('easy')}
               onMouseLeave={() => setHovered(null)}
               className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
@@ -122,7 +126,10 @@ export default function AISetup({ onLevelSelect, onBack, mainVolume = 1, uiSound
               />
             </button>
             <button
-              onClick={() => onLevelSelect('medium')}
+              onClick={() => {
+                if (onAIDifficultySelect) onAIDifficultySelect();
+                onLevelSelect('medium');
+              }}
               onMouseEnter={() => setHovered('medium')}
               onMouseLeave={() => setHovered(null)}
               className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"
@@ -136,7 +143,10 @@ export default function AISetup({ onLevelSelect, onBack, mainVolume = 1, uiSound
               />
             </button>
             <button
-              onClick={() => onLevelSelect('hard')}
+              onClick={() => {
+                if (onAIDifficultySelect) onAIDifficultySelect();
+                onLevelSelect('hard');
+              }}
               onMouseEnter={() => setHovered('hard')}
               onMouseLeave={() => setHovered(null)}
               className="transition-transform duration-300 hover:scale-110 focus:outline-none bg-transparent shadow-none"

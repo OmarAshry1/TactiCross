@@ -566,6 +566,7 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
             <div
               key={rIdx + '-' + cIdx}
               onClick={() => handleCellClick(rIdx, cIdx)}
+              onTouchStart={() => handleCellClick(rIdx, cIdx)}
               style={{
                 border: '1.5px solid rgba(255,255,255,0.5)',
                 background: selected && selected.row === rIdx && selected.col === cIdx
@@ -826,6 +827,7 @@ function RiverGame(props: Omit<MapGameProps, 'mapType'>) {
     uiSound: 0.6,
     soundEnabled: true
   });
+  const prevMenuMusicRef = useRef(settings.menuMusic);
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // Store previous mainVolume for toggling sound
@@ -841,9 +843,10 @@ function RiverGame(props: Omit<MapGameProps, 'mapType'>) {
       audioRef.current = new Audio('/assets/Menu-Background/music/summer_nights.ogg');
       audioRef.current.loop = true;
       audioRef.current.volume = settings.mainVolume * settings.menuMusic;
+    } else {
+      audioRef.current.volume = settings.mainVolume * settings.menuMusic;
     }
     if (gameState !== 'game' && gameState !== 'map-revealed' && !isMuted) {
-      audioRef.current.volume = settings.mainVolume * settings.menuMusic;
       audioRef.current.play().catch(() => {});
     } else if (audioRef.current) {
       audioRef.current.pause();
@@ -881,6 +884,8 @@ function RiverGame(props: Omit<MapGameProps, 'mapType'>) {
       setGameState('tournament-setup');
     } else if (mode === 'ai') {
       setGameState('ai-setup');
+      // Pause/mute background music when entering AI mode setup
+      muteGlobalMusic();
     }
   };
 
@@ -920,6 +925,8 @@ function RiverGame(props: Omit<MapGameProps, 'mapType'>) {
   const handleAILevelSelect = (level: AILevel) => {
     setAiLevel(level);
     setGameState('ai-survival');
+    // Pause/mute background music when entering AI survival
+    muteGlobalMusic();
   };
 
   const renderCurrentScreen = () => {
@@ -997,21 +1004,43 @@ function RiverGame(props: Omit<MapGameProps, 'mapType'>) {
       case 'ai-setup':
         return (
           <AISetup
-            onLevelSelect={handleAILevelSelect}
-            onBack={() => setGameState('mode-selection')}
+            onLevelSelect={level => {
+              prevMenuMusicRef.current = settings.menuMusic;
+              setSettings(s => ({ ...s, menuMusic: 0 }));
+              handleAILevelSelect(level);
+            }}
+            onBack={() => {
+              setSettings(s => ({ ...s, menuMusic: prevMenuMusicRef.current }));
+              setGameState('mode-selection');
+            }}
             mainVolume={settings.mainVolume}
             uiSound={settings.uiSound}
+            onAIDifficultySelect={() => {
+              if (!isMuted) {
+                toggleMute();
+                mutedByAIRef.current = true;
+              }
+            }}
           />
         );
       case 'ai-survival':
         return (
           <AISurvival
             level={aiLevel}
-            onBack={() => setGameState('ai-setup')}
+            onBack={() => {
+              setSettings(s => ({ ...s, menuMusic: prevMenuMusicRef.current }));
+              setGameState('ai-setup');
+            }}
             mainVolume={settings.mainVolume}
             uiSound={settings.uiSound}
             muteGlobalMusic={muteGlobalMusic}
             unmuteGlobalMusic={unmuteGlobalMusic}
+            onAIGameBack={() => {
+              if (mutedByAIRef.current && isMuted) {
+                toggleMute();
+                mutedByAIRef.current = false;
+              }
+            }}
           />
         );
       case 'settings':
@@ -1128,6 +1157,7 @@ function RiverGame(props: Omit<MapGameProps, 'mapType'>) {
   const muteGlobalMusic = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+      // Do NOT reset currentTime here
     }
   };
   const unmuteGlobalMusic = () => {
@@ -1191,6 +1221,13 @@ function PolarGame(props: Omit<MapGameProps, 'mapType'> & MapGameExtraProps) {
   return <MapGame {...props} mapType="polar" />;
 }
 
+// Place this at the top of the file, outside the App component
+if (typeof window !== 'undefined' && !window.__globalAudio) {
+  window.__globalAudio = new Audio('/assets/Menu-Background/music/summer_nights.ogg');
+  window.__globalAudio.loop = true;
+}
+const globalAudio = typeof window !== 'undefined' ? window.__globalAudio : null;
+
 export default function App() {
   const [gameState, setGameState] = useState<GameState>('menu');
   const [gameMode, setGameMode] = useState<GameMode>('pvp');
@@ -1207,8 +1244,8 @@ export default function App() {
     uiSound: 0.6,
     soundEnabled: true
   });
+  const prevMenuMusicRef = useRef(settings.menuMusic);
   const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   // Store previous mainVolume for toggling sound
   const [prevMainVolume, setPrevMainVolume] = useState(settings.mainVolume);
   const [showMapReveal, setShowMapReveal] = useState(false);
@@ -1216,24 +1253,20 @@ export default function App() {
   // In App, add gameWinner state
   const [gameWinner, setGameWinner] = useState<1 | 2 | null>(null);
   const [tournamentPlayerCount, setTournamentPlayerCount] = useState<number>(4);
+  // --- Add ref to track if mute was triggered by AI mode ---
+  const mutedByAIRef = useRef(false);
 
   // Music logic: play on all menus, stop in game
   useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio('/assets/Menu-Background/music/summer_nights.ogg');
-      audioRef.current.loop = true;
-      audioRef.current.volume = settings.mainVolume * settings.menuMusic;
-    }
+    if (!globalAudio) return;
+    globalAudio.volume = settings.mainVolume * settings.menuMusic;
     if (gameState !== 'game' && gameState !== 'map-revealed' && !isMuted) {
-      audioRef.current.volume = settings.mainVolume * settings.menuMusic;
-      audioRef.current.play().catch(() => {});
-    } else if (audioRef.current) {
-      audioRef.current.pause();
+      globalAudio.play().catch(() => {});
+    } else {
+      globalAudio.pause();
     }
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      globalAudio.pause();
     };
   }, [gameState, isMuted, settings.mainVolume, settings.menuMusic]);
 
@@ -1263,6 +1296,8 @@ export default function App() {
       setGameState('tournament-setup');
     } else if (mode === 'ai') {
       setGameState('ai-setup');
+      // Pause/mute background music when entering AI mode setup
+      muteGlobalMusic();
     }
   };
 
@@ -1302,6 +1337,8 @@ export default function App() {
   const handleAILevelSelect = (level: AILevel) => {
     setAiLevel(level);
     setGameState('ai-survival');
+    // Pause/mute background music when entering AI survival
+    muteGlobalMusic();
   };
 
   const renderCurrentScreen = () => {
@@ -1379,21 +1416,43 @@ export default function App() {
       case 'ai-setup':
         return (
           <AISetup
-            onLevelSelect={handleAILevelSelect}
-            onBack={() => setGameState('mode-selection')}
+            onLevelSelect={level => {
+              prevMenuMusicRef.current = settings.menuMusic;
+              setSettings(s => ({ ...s, menuMusic: 0 }));
+              handleAILevelSelect(level);
+            }}
+            onBack={() => {
+              setSettings(s => ({ ...s, menuMusic: prevMenuMusicRef.current }));
+              setGameState('mode-selection');
+            }}
             mainVolume={settings.mainVolume}
             uiSound={settings.uiSound}
+            onAIDifficultySelect={() => {
+              if (!isMuted) {
+                toggleMute();
+                mutedByAIRef.current = true;
+              }
+            }}
           />
         );
       case 'ai-survival':
         return (
           <AISurvival
             level={aiLevel}
-            onBack={() => setGameState('ai-setup')}
+            onBack={() => {
+              setSettings(s => ({ ...s, menuMusic: prevMenuMusicRef.current }));
+              setGameState('ai-setup');
+            }}
             mainVolume={settings.mainVolume}
             uiSound={settings.uiSound}
             muteGlobalMusic={muteGlobalMusic}
             unmuteGlobalMusic={unmuteGlobalMusic}
+            onAIGameBack={() => {
+              if (mutedByAIRef.current && isMuted) {
+                toggleMute();
+                mutedByAIRef.current = false;
+              }
+            }}
           />
         );
       case 'settings':
@@ -1508,15 +1567,22 @@ export default function App() {
   }, [gameState]);
 
   const muteGlobalMusic = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    if (globalAudio) globalAudio.pause();
   };
   const unmuteGlobalMusic = () => {
-    if (audioRef.current && gameState !== 'game' && gameState !== 'map-revealed' && !isMuted) {
-      audioRef.current.play().catch(() => {});
+    if (globalAudio && gameState !== 'game' && gameState !== 'map-revealed' && !isMuted) {
+      globalAudio.play().catch(() => {});
     }
   };
+
+  // Automatically mute when entering AI mode, and unmute when leaving
+  useEffect(() => {
+    const isAIMode = gameState === 'ai-setup' || gameState === 'ai-survival';
+    if (!isAIMode && mutedByAIRef.current && isMuted) {
+      toggleMute();
+      mutedByAIRef.current = false;
+    }
+  }, [gameState]);
 
   return (
     <div className="min-h-screen overflow-hidden relative">
