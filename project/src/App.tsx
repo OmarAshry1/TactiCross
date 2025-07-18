@@ -551,8 +551,8 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
         className="absolute left-1/2 top-1/2"
         style={{
           transform: 'translate(-50%, -50%)',
-          width: '30%',
-          height: '60%',
+          width: '28%',
+          height: '59%',
           display: 'grid',
           gridTemplateRows: 'repeat(3, 1fr)',
           gridTemplateColumns: 'repeat(3, 1fr)',
@@ -590,7 +590,7 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
                       : '/assets/Menu-Background/Assets/polar/player1_icon_polar.png'
                   }
                   alt="P1 Icon"
-                  style={{ width: 360, height: 360, opacity: 1 }}
+                  style={{ width: 350, height: 350, opacity: 1 }}
                   draggable="false"
                 />
               )}
