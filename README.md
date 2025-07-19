@@ -152,3 +152,11 @@ project/
 ![App Demo](demos/TactiCross_demo_6.gif)
 ### Gameplay + Winning
 ![App Demo](demos/TactiCross_demo_7.gif)
+
+## Maps 
+### Lava
+![lava](Screenshots/lava.png)
+### River
+![river](Screenshots/river.png)
+### Polar
+![polar](Screenshots/polar.png)
