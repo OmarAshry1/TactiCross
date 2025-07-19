@@ -2,6 +2,8 @@
 
 A strategic pixel adventure game built with React, TypeScript, and Tailwind CSS.
 
+![App Demo](demos/TactiCross_demo_1.gif)
+
 ## Features
 
 ### 🏔️ Animated Mountain Background
@@ -132,4 +134,16 @@ project/
 ├── public/
 │   └── assets/             # Static assets
 └── package.json            # Dependencies and scripts
-``` 
+```
+### UI
+## Selecting Game Modes 
+![Game Modes](demos/TactiCross_demo_2.gif)
+
+## Survival Mode
+# Setup
+![App Demo](demos/TactiCross_demo_3.gif)
+# Gameplay
+![App Demo](demos/TactiCross_demo_4.gif)
+# losing
+![App Demo](demos/TactiCross_demo_5.gif)
+
