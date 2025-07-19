@@ -132,12 +132,12 @@ const creatureSelections = [
 
 // Frame sequence animation for individual PNGs
 const slime1Frames = [
-  'public/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_1.PNG',
-  'public/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_2.PNG',
-  'public/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_3.PNG',
-  'public/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_4.PNG',
-  'public/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_5.PNG',
-  'public/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_6.PNG',
+  '/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_1.PNG',
+  '/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_2.PNG',
+  '/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_3.PNG',
+  '/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_4.PNG',
+  '/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_5.PNG',
+  '/assets/Menu-Background/Assets/creatures/PNG/Slime1/Idle/selection/Slime1_Idle_6.PNG',
   
 ];
 
