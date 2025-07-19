@@ -444,8 +444,8 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
             color: '#222',
             fontWeight: 700,
             fontSize: 48,
-            textShadow: '0 2px 8px #fff, 0 4px 12px rgba(255,255,255,0.8)',
-            fontFamily: 'inherit',
+            textShadow: '0 2px 8px #fff, 0 4px 12px rgba(255, 255, 255, 0)',
+            fontFamily: 'retropix',
             whiteSpace: 'nowrap',
             textAlign: 'center',
             zIndex: 2,
@@ -495,7 +495,7 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
           />
           <span style={{
             position: 'absolute',
-            top: '60%',
+            top: '64%',
             left: 0,
             width: '100%',
             transform: 'translateY(-50%)',
@@ -503,7 +503,7 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
             fontWeight: 700,
             fontSize: 90,
             textShadow: '0 2px 8px #fff',
-            fontFamily: 'inherit',
+            fontFamily: 'retropix',
             whiteSpace: 'nowrap',
             textAlign: 'center',
             overflow: 'hidden',
@@ -523,7 +523,7 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
           />
           <span style={{
             position: 'absolute',
-            top: '60%',
+            top: '64%',
             left: 0,
             width: '100%',
             transform: 'translateY(-50%)',
@@ -531,7 +531,7 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
             fontWeight: 700,
             fontSize: 90,
             textShadow: '0 2px 8px #fff',
-            fontFamily: 'inherit',
+            fontFamily: 'retropix',
             whiteSpace: 'nowrap',
             textAlign: 'center',
             overflow: 'hidden',
@@ -713,8 +713,8 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
           src="/assets/Menu-Background/Assets/turn_card.png"
           alt="Turn Card"
           style={{
-            width: 400,
-            height: 100,
+            width: 500,
+            height: 125,
             objectFit: 'contain',
             position: 'absolute',
             left: 0,
@@ -728,11 +728,12 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
           zIndex: 2,
           color: '#222',
           fontWeight: 700,
-          fontSize: 32,
+          fontSize: 36,
           width: '100%',
           textAlign: 'center',
-          fontFamily: 'inherit',
-          textShadow: '0 2px 8px #fff'
+          fontFamily: 'retropix',
+          textShadow: '0 2px 8px #fff',
+          top:28
         }}>
           {currentPlayer === 1 ? player1Name : player2Name}
         </span>
@@ -740,8 +741,8 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
       {gameWinner && (
         <div style={{
           position: 'absolute',
-          left: '42%',
-          top: '40%',
+          left: '41%', // was '42%'
+          top: '35%',
           transform: 'translate(-50%, -50%)',
           zIndex: 1000,
           display: 'flex',
@@ -751,12 +752,12 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
           width: 600,
           pointerEvents: 'auto',
         }}>
-          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div>
             <img 
               src={winnerCardImg} 
               alt="Winner Card" 
               style={{ 
-                width: 600, 
+                width: 800, 
                 height: 'auto', 
                 filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))',
                 animation: 'float-title 3.5s ease-in-out infinite'
@@ -765,30 +766,31 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
             {/* Winner name overlay - positioned below "Winner:" text */}
             <div style={{
               position: 'absolute',
-              top: '65%',
-              left: '55%',
-              transform: 'translate(-50%, -50%)',
+              top: '370px',
+              left: '32%',
+              width:'300px',
+              transform: 'translate(-50%)',
               color: '#222',
               fontWeight: 700,
               fontSize: 48,
-              textShadow: '0 2px 8px #fff, 0 4px 12px rgba(255,255,255,0.8)',
-              fontFamily: 'inherit',
+              textShadow: '0 2px 8px #fff, 0 4px 12px rgba(255, 255, 255, 0)',
+              fontFamily: 'retropix',
               whiteSpace: 'nowrap',
               textAlign: 'center',
               zIndex: 2,
-              maxWidth: '80%',
+              maxWidth: '100%',
               overflow: 'hidden',
-              textOverflow: 'ellipsis'
+              textOverflow: 'ellipsis',
+              animation: 'float-title 3.5s ease-in-out infinite'
             }}>
               {gameWinner === 1 ? player1Name : player2Name}
             </div>
           </div>
           {/* Buttons positioned below the card */}
-          <div style={{ 
-            display: 'flex', 
-            gap: 26, 
+          <div style={{   
             marginTop: 25,
-            zIndex: 3
+            zIndex: 3,
+            marginLeft : 81
           }}>
             <button
               onClick={onBackToModeSelect}
@@ -1088,12 +1090,12 @@ function RiverGame(props: Omit<MapGameProps, 'mapType'>) {
               mainVolume={settings.mainVolume}
               isMuted={isMuted}
               onRematch={() => {
+                setGameWinner(null);
                 setGameState('map-revealed');
-                setGameWinner(null); // Reset game winner
               }}
               onBackToModeSelect={() => {
+                setGameWinner(null);
                 setGameState('mode-selection');
-                setGameWinner(null); // Reset game winner
               }}
               gameWinner={gameWinner}
               setGameWinner={setGameWinner}
@@ -1110,12 +1112,12 @@ function RiverGame(props: Omit<MapGameProps, 'mapType'>) {
               mainVolume={settings.mainVolume}
               isMuted={isMuted}
               onRematch={() => {
+                setGameWinner(null);
                 setGameState('map-revealed');
-                setGameWinner(null); // Reset game winner
               }}
               onBackToModeSelect={() => {
+                setGameWinner(null);
                 setGameState('mode-selection');
-                setGameWinner(null); // Reset game winner
               }}
               gameWinner={gameWinner}
               setGameWinner={setGameWinner}
