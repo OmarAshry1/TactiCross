@@ -741,7 +741,7 @@ function MapGame({ player1Name, player2Name, player1Creature, player2Creature, m
       {gameWinner && (
         <div style={{
           position: 'absolute',
-          left: '41%', // was '42%'
+          left: '42%', // was '42%'
           top: '35%',
           transform: 'translate(-50%, -50%)',
           zIndex: 1000,
