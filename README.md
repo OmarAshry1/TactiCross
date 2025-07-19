@@ -147,3 +147,8 @@ project/
 ### losing
 ![App Demo](demos/TactiCross_demo_5.gif)
 
+## PvP
+### Setup
+![App Demo](demos/TactiCross_demo_6.gif)
+### Gameplay + Winning
+![App Demo](demos/TactiCross_demo_7.gif)
