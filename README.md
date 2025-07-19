@@ -135,15 +135,15 @@ project/
 │   └── assets/             # Static assets
 └── package.json            # Dependencies and scripts
 ```
-### UI
+# UI
 ## Selecting Game Modes 
 ![Game Modes](demos/TactiCross_demo_2.gif)
 
 ## Survival Mode
-# Setup
+### Setup
 ![App Demo](demos/TactiCross_demo_3.gif)
-# Gameplay
+### Gameplay
 ![App Demo](demos/TactiCross_demo_4.gif)
-# losing
+### losing
 ![App Demo](demos/TactiCross_demo_5.gif)
 
