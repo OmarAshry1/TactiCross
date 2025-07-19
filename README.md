@@ -25,6 +25,11 @@ The starting page features a beautiful animated mountain background using assets
 - **Player Customization**: Customize your game experience
 - **Settings**: Adjust game preferences
 
+### Ai modes
+- **Easy**: makes random moves
+- **Medium**: uses Greedy Algorithm to make moves
+- **Hard**: uses Minmax Algorithm to make moves
+
 ## Getting Started
 
 ### Prerequisites
