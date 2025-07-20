@@ -39,11 +39,12 @@ function getRandomAIMove(board: Board) {
   for (let r = 0; r < 3; r++) {
     for (let c = 0; c < 3; c++) {
       if (board[r][c].owner === 2) {
-        const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-        for (const [dr, dc] of dirs) {
-          const nr = r + dr, nc = c + dc;
-          if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3 && board[nr][nc].owner === null) {
-            moves.push({ from: { row: r, col: c }, to: { row: nr, col: nc } });
+        // Check all empty cells on the board, not just adjacent ones
+        for (let nr = 0; nr < 3; nr++) {
+          for (let nc = 0; nc < 3; nc++) {
+            if (board[nr][nc].owner === null) {
+              moves.push({ from: { row: r, col: c }, to: { row: nr, col: nc } });
+            }
           }
         }
       }
@@ -58,92 +59,254 @@ function getGreedyAIMove(board: Board) {
   for (let r = 0; r < 3; r++) {
     for (let c = 0; c < 3; c++) {
       if (board[r][c].owner === 2) {
-        const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-        for (const [dr, dc] of dirs) {
-          const nr = r + dr, nc = c + dc;
-          if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3 && board[nr][nc].owner === null) {
-            moves.push({ from: { row: r, col: c }, to: { row: nr, col: nc } });
-          }
-        }
-      }
-    }
-  }
-  // Try all moves: if any results in win, take it
-  for (const move of moves) {
-    const newBoard: Board = board.map(row => row.map(cell => ({ ...cell })));
-    newBoard[move.to.row][move.to.col] = { owner: 2, moved: true };
-    newBoard[move.from.row][move.from.col] = { owner: null, moved: false };
-    if (checkWin(newBoard) === 2) return move;
-  }
-  // Try all moves: if any blocks player win, take it
-  for (const move of moves) {
-    const newBoard: Board = board.map(row => row.map(cell => ({ ...cell })));
-    newBoard[move.to.row][move.to.col] = { owner: 2, moved: true };
-    newBoard[move.from.row][move.from.col] = { owner: null, moved: false };
-    // Simulate player move
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 3; c++) {
-        if (newBoard[r][c].owner === 1) {
-          const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-          for (const [dr, dc] of dirs) {
-            const nr = r + dr, nc = c + dc;
-            if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3 && newBoard[nr][nc].owner === null) {
-              const testBoard: Board = newBoard.map(row => row.map(cell => ({ ...cell })));
-              testBoard[nr][nc] = { owner: 1, moved: true };
-              testBoard[r][c] = { owner: null, moved: false };
-              if (checkWin(testBoard) === 1) return move;
-            }
-          }
-        }
-      }
-    }
-  }
-  if (moves.length === 0) return null;
-  return moves[Math.floor(Math.random() * moves.length)];
-}
-
-function getMinimaxAIMove(board: Board) {
-  function minimax(b: Board, depth: number, isMax: boolean): { score: number, move?: { from: { row: number, col: number }, to: { row: number, col: number } } } {
-    if (depth > 6) return { score: 0 }; // Recursion depth limit
-    const winner = checkWin(b);
-    if (winner === 2) return { score: 10 - depth };
-    if (winner === 1) return { score: depth - 10 };
-    const moves: { from: { row: number, col: number }, to: { row: number, col: number } }[] = [];
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 3; c++) {
-        if (b[r][c].owner === (isMax ? 2 : 1)) {
-          const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-          for (const [dr, dc] of dirs) {
-            const nr = r + dr, nc = c + dc;
-            if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3 && b[nr][nc].owner === null) {
+        // Check all empty cells on the board, not just adjacent ones
+        for (let nr = 0; nr < 3; nr++) {
+          for (let nc = 0; nc < 3; nc++) {
+            if (board[nr][nc].owner === null) {
               moves.push({ from: { row: r, col: c }, to: { row: nr, col: nc } });
             }
           }
         }
       }
     }
-    if (moves.length === 0) return { score: 0 };
+  }
+  
+  if (moves.length === 0) return null;
+  
+  // Priority 1: Win immediately if possible
+  for (const move of moves) {
+    const newBoard: Board = board.map(row => row.map(cell => ({ ...cell })));
+    newBoard[move.to.row][move.to.col] = { owner: 2, moved: true };
+    newBoard[move.from.row][move.from.col] = { owner: null, moved: false };
+    if (checkWin(newBoard) === 2) return move;
+  }
+  
+  // Priority 2: Block player from winning on their next move
+  for (const move of moves) {
+    const newBoard: Board = board.map(row => row.map(cell => ({ ...cell })));
+    newBoard[move.to.row][move.to.col] = { owner: 2, moved: true };
+    newBoard[move.from.row][move.from.col] = { owner: null, moved: false };
+    
+    // Check if this move blocks any immediate player win
+    let blocksWin = false;
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        if (newBoard[r][c].owner === 1) {
+          // Check all empty cells for player moves, not just adjacent ones
+          for (let nr = 0; nr < 3; nr++) {
+            for (let nc = 0; nc < 3; nc++) {
+              if (newBoard[nr][nc].owner === null) {
+                const testBoard: Board = newBoard.map(row => row.map(cell => ({ ...cell })));
+                testBoard[nr][nc] = { owner: 1, moved: true };
+                testBoard[r][c] = { owner: null, moved: false };
+                if (checkWin(testBoard) === 1) {
+                  blocksWin = true;
+                  break;
+                }
+              }
+            }
+            if (blocksWin) break;
+          }
+          if (blocksWin) break;
+        }
+      }
+      if (blocksWin) break;
+    }
+    if (blocksWin) return move;
+  }
+  
+  // Priority 3: Try to create a winning opportunity (two in a row)
+  for (const move of moves) {
+    const newBoard: Board = board.map(row => row.map(cell => ({ ...cell })));
+    newBoard[move.to.row][move.to.col] = { owner: 2, moved: true };
+    newBoard[move.from.row][move.from.col] = { owner: null, moved: false };
+    
+    // Check if this creates a potential winning line
+    const checkPotentialWin = (cells: [number, number][]): boolean => {
+      const owners = cells.map(([r, c]) => newBoard[r][c].owner);
+      const moved = cells.map(([r, c]) => newBoard[r][c].moved);
+      const aiPieces = owners.filter((o, i) => o === 2 && moved[i]).length;
+      const emptySpaces = owners.filter(o => o === null).length;
+      return aiPieces === 2 && emptySpaces === 1;
+    };
+    
+    // Check rows, columns, and diagonals for potential wins
+    for (let r = 0; r < 3; r++) {
+      if (checkPotentialWin([[r,0],[r,1],[r,2]])) return move;
+    }
+    for (let c = 0; c < 3; c++) {
+      if (checkPotentialWin([[0,c],[1,c],[2,c]])) return move;
+    }
+    if (checkPotentialWin([[0,0],[1,1],[2,2]])) return move;
+    if (checkPotentialWin([[0,2],[1,1],[2,0]])) return move;
+  }
+  
+  // Priority 4: Move to strategic positions (center, corners, edges)
+  for (const move of moves) {
+    if (move.to.row === 1 && move.to.col === 1) return move; // Center
+  }
+  for (const move of moves) {
+    const [r, c] = [move.to.row, move.to.col];
+    if ((r === 0 || r === 2) && (c === 0 || c === 2)) return move; // Corners
+  }
+  for (const move of moves) {
+    const [r, c] = [move.to.row, move.to.col];
+    if ((r === 0 || r === 2 || c === 0 || c === 2) && !(r === 1 && c === 1)) return move; // Edges
+  }
+  
+  // Priority 5: Random move
+  return moves[Math.floor(Math.random() * moves.length)];
+}
+
+function getMinimaxAIMove(board: Board) {
+  // Performance safeguard: limit the number of moves to consider
+  const MAX_MOVES_PER_PIECE = 4; // Limit moves per piece to prevent explosion
+  
+  function minimax(b: Board, depth: number, isMax: boolean, alpha: number = -Infinity, beta: number = Infinity): { score: number, move?: { from: { row: number, col: number }, to: { row: number, col: number } } } {
+    if (depth > 6) return { score: evaluatePosition(b) }; // Reduced depth limit for performance
+    
+    const winner = checkWin(b);
+    if (winner === 2) return { score: 1000 - depth };
+    if (winner === 1) return { score: depth - 1000 };
+    
+    const moves: { from: { row: number, col: number }, to: { row: number, col: number } }[] = [];
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 3; c++) {
+        if (b[r][c].owner === (isMax ? 2 : 1)) {
+          const pieceMoves: { from: { row: number, col: number }, to: { row: number, col: number } }[] = [];
+          // Check all empty cells on the board
+          for (let nr = 0; nr < 3; nr++) {
+            for (let nc = 0; nc < 3; nc++) {
+              if (b[nr][nc].owner === null) {
+                pieceMoves.push({ from: { row: r, col: c }, to: { row: nr, col: nc } });
+              }
+            }
+          }
+          // Limit moves per piece to prevent combinatorial explosion
+          if (pieceMoves.length > MAX_MOVES_PER_PIECE) {
+            // Sort moves by strategic value and take the best ones
+            pieceMoves.sort((a, b) => {
+              const aScore = evaluateMove(board, a);
+              const bScore = evaluateMove(board, b);
+              return bScore - aScore; // Descending order
+            });
+            moves.push(...pieceMoves.slice(0, MAX_MOVES_PER_PIECE));
+          } else {
+            moves.push(...pieceMoves);
+          }
+        }
+      }
+    }
+    
+    if (moves.length === 0) return { score: evaluatePosition(b) };
+    
     let bestMove = undefined;
     let bestScore = isMax ? -Infinity : Infinity;
+    
     for (const move of moves) {
       const newBoard: Board = b.map(row => row.map(cell => ({ ...cell })));
-      // Preserve moved state: if already moved, keep true; otherwise, set to true for destination
       const wasMoved = b[move.from.row][move.from.col].moved;
       newBoard[move.to.row][move.to.col] = { owner: isMax ? 2 : 1, moved: wasMoved || true };
       newBoard[move.from.row][move.from.col] = { owner: null, moved: false };
-      const result = minimax(newBoard, depth + 1, !isMax);
-      if (isMax && result.score > bestScore) {
-        bestScore = result.score;
-        bestMove = move;
-      } else if (!isMax && result.score < bestScore) {
-        bestScore = result.score;
-        bestMove = move;
+      
+      const result = minimax(newBoard, depth + 1, !isMax, alpha, beta);
+      
+      if (isMax) {
+        if (result.score > bestScore) {
+          bestScore = result.score;
+          bestMove = move;
+        }
+        alpha = Math.max(alpha, bestScore);
+      } else {
+        if (result.score < bestScore) {
+          bestScore = result.score;
+          bestMove = move;
+        }
+        beta = Math.min(beta, bestScore);
       }
+      
+      if (alpha >= beta) break;
     }
+    
     return { score: bestScore, move: bestMove };
   }
+  
   const result = minimax(board, 0, true);
   return result.move || null;
+}
+
+// Helper function to evaluate the strategic value of a move
+function evaluateMove(board: Board, move: { from: { row: number, col: number }, to: { row: number, col: number } }): number {
+  let score = 0;
+  const [toRow, toCol] = [move.to.row, move.to.col];
+  
+  // Bonus for center
+  if (toRow === 1 && toCol === 1) score += 10;
+  
+  // Bonus for corners
+  if ((toRow === 0 || toRow === 2) && (toCol === 0 || toCol === 2)) score += 5;
+  
+  // Bonus for edges
+  if ((toRow === 0 || toRow === 2 || toCol === 0 || toCol === 2) && !(toRow === 1 && toCol === 1)) score += 2;
+  
+  // Check if this move creates a winning line
+  const testBoard = board.map(row => row.map(cell => ({ ...cell })));
+  testBoard[toRow][toCol] = { owner: 2, moved: true };
+  testBoard[move.from.row][move.from.col] = { owner: null, moved: false };
+  
+  if (checkWin(testBoard) === 2) score += 100;
+  
+  return score;
+}
+
+// Evaluation function for positions that don't have a clear winner
+function evaluatePosition(board: Board): number {
+  let score = 0;
+  
+  // Evaluate each line (rows, columns, diagonals)
+  const lines = [
+    // Rows
+    [[0,0],[0,1],[0,2]], [[1,0],[1,1],[1,2]], [[2,0],[2,1],[2,2]],
+    // Columns
+    [[0,0],[1,0],[2,0]], [[0,1],[1,1],[2,1]], [[0,2],[1,2],[2,2]],
+    // Diagonals
+    [[0,0],[1,1],[2,2]], [[0,2],[1,1],[2,0]]
+  ];
+  
+  for (const line of lines) {
+    const owners = line.map(([r, c]) => board[r][c].owner);
+    const moved = line.map(([r, c]) => board[r][c].moved);
+    
+    const aiPieces = owners.filter((o, i) => o === 2 && moved[i]).length;
+    const playerPieces = owners.filter((o, i) => o === 1 && moved[i]).length;
+    const emptySpaces = owners.filter(o => o === null).length;
+    
+    // Score based on piece advantage
+    if (aiPieces === 2 && emptySpaces === 1) score += 50; // AI has winning opportunity
+    else if (playerPieces === 2 && emptySpaces === 1) score -= 50; // Player has winning opportunity
+    else if (aiPieces === 1 && emptySpaces === 2) score += 10; // AI has potential
+    else if (playerPieces === 1 && emptySpaces === 2) score -= 10; // Player has potential
+    
+    // Bonus for center control (less important with full mobility)
+    if (board[1][1].owner === 2 && board[1][1].moved) score += 3;
+    else if (board[1][1].owner === 1 && board[1][1].moved) score -= 3;
+  }
+  
+  // Bonus for strategic positioning (corners and edges)
+  const corners = [[0,0], [0,2], [2,0], [2,2]];
+  const edges = [[0,1], [1,0], [1,2], [2,1]];
+  
+  for (const [r, c] of corners) {
+    if (board[r][c].owner === 2 && board[r][c].moved) score += 2;
+    else if (board[r][c].owner === 1 && board[r][c].moved) score -= 2;
+  }
+  
+  for (const [r, c] of edges) {
+    if (board[r][c].owner === 2 && board[r][c].moved) score += 1;
+    else if (board[r][c].owner === 1 && board[r][c].moved) score -= 1;
+  }
+  
+  return score;
 }
 
 // Game win detection (both creatures crossed)
@@ -425,24 +588,68 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
   useEffect(() => {
     if (currentPlayer === 2 && !roundWinner && !isAnimatingCreature && !aiThinking && !gameWinner) {
       setAiThinking(true);
+      
+      // Add timeout to prevent freezing
+      const timeoutId = setTimeout(() => {
+        setAiThinking(false);
+        console.log('AI timeout - falling back to random move');
+        const fallbackMove = getRandomAIMove(board);
+        if (fallbackMove) {
+          setPendingAIMove(fallbackMove);
+          setSelected({ row: fallbackMove.from.row, col: fallbackMove.from.col });
+        }
+      }, 3000); // 3 second timeout
+      
       setTimeout(() => {
         let aiMove = null;
-        if (level === 'easy') aiMove = getRandomAIMove(board);
-        else if (level === 'medium') aiMove = getGreedyAIMove(board);
-        else {
-          aiMove = getMinimaxAIMove(board);
-          if (!aiMove) aiMove = getRandomAIMove(board); // fallback if minimax fails
+        try {
+          if (level === 'easy') {
+            // Easy: 90% random, 10% greedy for occasional smart moves
+            if (Math.random() < 0.9) {
+              aiMove = getRandomAIMove(board);
+            } else {
+              aiMove = getGreedyAIMove(board);
+            }
+                  } else if (level === 'medium') {
+          // Medium: 70% greedy, 25% random, 5% minimax for variety (reduced minimax usage)
+          const rand = Math.random();
+          if (rand < 0.7) {
+            aiMove = getGreedyAIMove(board);
+          } else if (rand < 0.95) {
+            aiMove = getRandomAIMove(board);
+          } else {
+            aiMove = getMinimaxAIMove(board);
+          }
+        } else {
+          // Hard: 50% minimax, 30% greedy, 20% random for unpredictability (reduced minimax usage)
+          const rand = Math.random();
+          if (rand < 0.5) {
+            aiMove = getMinimaxAIMove(board);
+          } else if (rand < 0.8) {
+            aiMove = getGreedyAIMove(board);
+          } else {
+            aiMove = getRandomAIMove(board);
+          }
+          if (!aiMove) aiMove = getRandomAIMove(board); // fallback if all fail
         }
+        } catch (error) {
+          console.error('AI algorithm error:', error);
+          aiMove = getRandomAIMove(board); // fallback on error
+        }
+        
+        clearTimeout(timeoutId); // Clear the timeout if we got a move
+        
         if (aiMove) {
+          console.log(`AI (${level}) chose move:`, aiMove);
           setPendingAIMove(aiMove);
           setSelected({ row: aiMove.from.row, col: aiMove.from.col });
         } else {
           setAiThinking(false);
           console.log('AI did not return a valid move.');
         }
-      }, 400);
+      }, level === 'easy' ? 600 : level === 'medium' ? 400 : 200);
     }
-  }, [currentPlayer, roundWinner, isAnimatingCreature, gameWinner]);
+  }, [currentPlayer, roundWinner, isAnimatingCreature, gameWinner, level, board]);
 
   // --- Apply AI move only after 'selected' is set ---
   useEffect(() => {
