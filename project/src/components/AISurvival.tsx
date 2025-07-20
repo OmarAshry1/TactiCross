@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import SoundButton from './SoundButton';
 import { AILevel, MapTheme } from '../types/game';
+import { Volume2, VolumeX } from 'lucide-react';
 
 interface AISurvivalProps {
   level: string;
@@ -73,15 +74,7 @@ function getGreedyAIMove(board: Board) {
   
   if (moves.length === 0) return null;
   
-  // Priority 1: Win immediately if possible
-  for (const move of moves) {
-    const newBoard: Board = board.map(row => row.map(cell => ({ ...cell })));
-    newBoard[move.to.row][move.to.col] = { owner: 2, moved: true };
-    newBoard[move.from.row][move.from.col] = { owner: null, moved: false };
-    if (checkWin(newBoard) === 2) return move;
-  }
-  
-  // Priority 2: Block player from winning on their next move
+  // Priority 1: Block player from winning on their next move (FIRST PRIORITY)
   for (const move of moves) {
     const newBoard: Board = board.map(row => row.map(cell => ({ ...cell })));
     newBoard[move.to.row][move.to.col] = { owner: 2, moved: true };
@@ -113,6 +106,14 @@ function getGreedyAIMove(board: Board) {
       if (blocksWin) break;
     }
     if (blocksWin) return move;
+  }
+  
+  // Priority 2: Win immediately if possible (SECOND PRIORITY)
+  for (const move of moves) {
+    const newBoard: Board = board.map(row => row.map(cell => ({ ...cell })));
+    newBoard[move.to.row][move.to.col] = { owner: 2, moved: true };
+    newBoard[move.from.row][move.from.col] = { owner: null, moved: false };
+    if (checkWin(newBoard) === 2) return move;
   }
   
   // Priority 3: Try to create a winning opportunity (two in a row)
@@ -166,8 +167,8 @@ function getMinimaxAIMove(board: Board) {
     if (depth > 6) return { score: evaluatePosition(b) }; // Reduced depth limit for performance
     
     const winner = checkWin(b);
-    if (winner === 2) return { score: 1000 - depth };
-    if (winner === 1) return { score: depth - 1000 };
+    if (winner === 2) return { score: 800 - depth }; // Reduced reward for AI win
+    if (winner === 1) return { score: depth - 1200 }; // Higher penalty for player win
     
     const moves: { from: { row: number, col: number }, to: { row: number, col: number } }[] = [];
     for (let r = 0; r < 3; r++) {
@@ -254,7 +255,28 @@ function evaluateMove(board: Board, move: { from: { row: number, col: number }, 
   testBoard[toRow][toCol] = { owner: 2, moved: true };
   testBoard[move.from.row][move.from.col] = { owner: null, moved: false };
   
-  if (checkWin(testBoard) === 2) score += 100;
+  if (checkWin(testBoard) === 2) score += 80; // Reduced priority for winning
+  
+  // Check if this move blocks a player win (HIGHER PRIORITY)
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (testBoard[r][c].owner === 1) {
+        for (let nr = 0; nr < 3; nr++) {
+          for (let nc = 0; nc < 3; nc++) {
+            if (testBoard[nr][nc].owner === null) {
+              const blockTestBoard = testBoard.map(row => row.map(cell => ({ ...cell })));
+              blockTestBoard[nr][nc] = { owner: 1, moved: true };
+              blockTestBoard[r][c] = { owner: null, moved: false };
+              if (checkWin(blockTestBoard) === 1) {
+                score += 120; // Higher priority for blocking
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   
   return score;
 }
@@ -281,11 +303,11 @@ function evaluatePosition(board: Board): number {
     const playerPieces = owners.filter((o, i) => o === 1 && moved[i]).length;
     const emptySpaces = owners.filter(o => o === null).length;
     
-    // Score based on piece advantage
-    if (aiPieces === 2 && emptySpaces === 1) score += 50; // AI has winning opportunity
-    else if (playerPieces === 2 && emptySpaces === 1) score -= 50; // Player has winning opportunity
-    else if (aiPieces === 1 && emptySpaces === 2) score += 10; // AI has potential
-    else if (playerPieces === 1 && emptySpaces === 2) score -= 10; // Player has potential
+    // Score based on piece advantage - PRIORITIZE BLOCKING OVER WINNING
+    if (playerPieces === 2 && emptySpaces === 1) score -= 100; // Player has winning opportunity (HIGH PRIORITY TO BLOCK)
+    else if (aiPieces === 2 && emptySpaces === 1) score += 80; // AI has winning opportunity (SECOND PRIORITY)
+    else if (playerPieces === 1 && emptySpaces === 2) score -= 20; // Player has potential (BLOCK)
+    else if (aiPieces === 1 && emptySpaces === 2) score += 15; // AI has potential (WIN)
     
     // Bonus for center control (less important with full mobility)
     if (board[1][1].owner === 2 && board[1][1].moved) score += 3;
@@ -621,12 +643,12 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
             aiMove = getMinimaxAIMove(board);
           }
         } else {
-          // Hard: 50% minimax, 30% greedy, 20% random for unpredictability (reduced minimax usage)
+          // Hard: 40% minimax, 50% greedy (blocking-first), 10% random for unpredictability
           const rand = Math.random();
-          if (rand < 0.5) {
+          if (rand < 0.4) {
             aiMove = getMinimaxAIMove(board);
-          } else if (rand < 0.8) {
-            aiMove = getGreedyAIMove(board);
+          } else if (rand < 0.9) {
+            aiMove = getGreedyAIMove(board); // This now prioritizes blocking
           } else {
             aiMove = getRandomAIMove(board);
           }
@@ -640,7 +662,38 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
         clearTimeout(timeoutId); // Clear the timeout if we got a move
         
         if (aiMove) {
-          console.log(`AI (${level}) chose move:`, aiMove);
+          // Determine if this is a blocking or winning move
+          const newBoard = board.map(row => row.map(cell => ({ ...cell })));
+          newBoard[aiMove.to.row][aiMove.to.col] = { owner: 2, moved: true };
+          newBoard[aiMove.from.row][aiMove.from.col] = { owner: null, moved: false };
+          
+          let moveType = "strategic";
+          if (checkWin(newBoard) === 2) {
+            moveType = "WINNING";
+          } else {
+            // Check if it blocks a player win
+            for (let r = 0; r < 3; r++) {
+              for (let c = 0; c < 3; c++) {
+                if (newBoard[r][c].owner === 1) {
+                  for (let nr = 0; nr < 3; nr++) {
+                    for (let nc = 0; nc < 3; nc++) {
+                      if (newBoard[nr][nc].owner === null) {
+                        const testBoard = newBoard.map(row => row.map(cell => ({ ...cell })));
+                        testBoard[nr][nc] = { owner: 1, moved: true };
+                        testBoard[r][c] = { owner: null, moved: false };
+                        if (checkWin(testBoard) === 1) {
+                          moveType = "BLOCKING";
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+          console.log(`AI (${level}) chose ${moveType} move:`, aiMove);
           setPendingAIMove(aiMove);
           setSelected({ row: aiMove.from.row, col: aiMove.from.col });
         } else {
@@ -664,6 +717,8 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
 
   // Add at the top of the AISurvival component
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Add local mute state for AI music
+  const [isAIMusicMuted, setIsAIMusicMuted] = useState(false);
   useEffect(() => {
     if (muteGlobalMusic) muteGlobalMusic();
     if (!audioRef.current) {
@@ -671,6 +726,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
       audioRef.current.loop = true;
       audioRef.current.volume = mainVolume * 0.3;
     }
+    audioRef.current.muted = isAIMusicMuted;
     audioRef.current.play().catch(() => {});
     return () => {
       if (audioRef.current) {
@@ -679,7 +735,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
       }
       if (unmuteGlobalMusic) unmuteGlobalMusic();
     };
-  }, [mainVolume, muteGlobalMusic, unmuteGlobalMusic]);
+  }, [mainVolume, muteGlobalMusic, unmuteGlobalMusic, isAIMusicMuted]);
 
   // Add a useEffect to play Gameover1.wav when showLossScreen becomes true
   useEffect(() => {
@@ -710,6 +766,24 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
   const bgColor = bgColors[currentMap] || 'rgba(0,0,0,0.7)';
     return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center relative overflow-hidden" style={{ background: bgColor }}>
+      {/* Mute button for AI music */}
+      <button
+        onClick={() => {
+          setIsAIMusicMuted((m) => {
+            if (audioRef.current) audioRef.current.muted = !m;
+            return !m;
+          });
+        }}
+        className="p-2 rounded-full bg-black/20 backdrop-blur-custom hover:bg-black/40 transition-all duration-300 button-glow"
+        style={{ position: 'absolute', top: 32, right: 32, zIndex: 101 }}
+        aria-label={isAIMusicMuted ? 'Unmute AI Music' : 'Mute AI Music'}
+      >
+        {isAIMusicMuted ? (
+          <VolumeX className="w-8 h-8 text-white/70" />
+        ) : (
+          <Volume2 className="w-8 h-8 text-white/70 audio-pulse" />
+        )}
+      </button>
       {/* Map image as background */}
       <img
         src={getMapImage()}
@@ -722,7 +796,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
       <div style={{ position: 'absolute', top: 32, left: 32, zIndex: 10, textAlign: 'left' }}>
         <img src={"/assets/Menu-Background/Assets/streak.png"} alt="Streak" style={{ width: 300, height: 180, position: 'relative' }} />
         {/* In the streak card, add className="retropix" to the streak number if you want, or to any player name display */}
-        <span className="retropix" style={{ position: 'absolute', top: 85, left: 90, width: 100, textAlign: 'center', color: 'black', fontWeight: 'bold', fontSize: 32 }}>{streak}</span>
+        <span className="retropix" style={{ position: 'absolute', top: 85, left: 95, width: 100, textAlign: 'center', color: 'black', fontWeight: 'bold', fontSize: 32 }}>{streak}</span>
           </div>
       {/* Animated creatures moving across the map - only show when animating */}
       {creatureStates.map((creature, index) => {
@@ -761,7 +835,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
         <>
           {/* Player creatures (right) */}
           <div style={{ position: 'absolute', right: '27%', top: '40%', transform: 'translateY(-50%)', zIndex: 3, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[0, 1].map(i => (
+            {[0].map(i => (
               !creatureStates[i].finished && animatingIndex !== i && (
                 <img
                   key={i}
@@ -775,7 +849,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
           </div>
           {/* AI creatures (left) */}
           <div style={{ position: 'absolute', left: '27%', top: '50%', transform: 'translateY(-50%)', zIndex: 3, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {[2, 3].map(i => (
+            {[2].map(i => (
               !creatureStates[i].finished && animatingIndex !== i && (
                 <img
                   key={i}
@@ -795,8 +869,8 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
           row.map((cell, cIdx) => (
             <div
               key={rIdx + '-' + cIdx}
-              className="w-24 h-24 flex items-center justify-center bg-white/40 rounded-lg border-2 border-white/60"
-              style={{ fontSize: 50, fontWeight: 'bold', color: cell.owner === 1 ? '#fbbf24' : cell.owner === 2 ? '#60a5fa' : '#222', width: 130, height: 130 }}
+              className="w-24 h-24 flex items-center justify-center bg-white/40 rounded-lg border-1 border-white/60"
+              style={{ fontSize: 50, fontWeight: 'bold', color: cell.owner === 1 ? '#fbbf24' : cell.owner === 2 ? '#60a5fa' : '#222', width: 125, height: 125 }}
               onClick={() => { if (currentPlayer === 1) playClickSound(); handleCellClick(rIdx, cIdx); }}
               onTouchStart={() => { if (currentPlayer === 1) playClickSound(); handleCellClick(rIdx, cIdx); }}
             >
@@ -834,36 +908,36 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
             }}
             draggable="false"
           />
-          <button
-            onClick={() => {
-              if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-              }
-              if (unmuteGlobalMusic) unmuteGlobalMusic();
-              if (onAIGameBack) onAIGameBack();
-              setStreak(0); // Reset streak on AI win back
-              setShowLossScreen(false);
-              onBack();
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              outline: 'none',
-              cursor: 'pointer',
-              marginTop: 40,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'absolute',
-              left: '50%',
-              bottom: 60,
-              transform: 'translateX(-50%)',
-              zIndex: 1001,
-            }}
-          >
-            <img src={'/assets/Menu-Background/Assets/back_button.png'} alt="Back" style={{ width: 300, height: 'auto' }} draggable="false" />
-          </button>
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <button
+              onClick={() => {
+                if (audioRef.current) {
+                  audioRef.current.pause();
+                  audioRef.current.currentTime = 0;
+                }
+                if (unmuteGlobalMusic) unmuteGlobalMusic();
+                if (onAIGameBack) onAIGameBack();
+                setStreak(0); // Reset streak on AI win back
+                setShowLossScreen(false);
+                onBack();
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                outline: 'none',
+                cursor: 'pointer',
+                marginTop: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                // Remove position, left, transform
+                bottom: 60,
+                zIndex: 1001,
+              }}
+            >
+              <img src={'/assets/Menu-Background/Assets/back_button.png'} alt="Back" style={{ width: 300, height: 'auto' }} draggable="false" />
+            </button>
+          </div>
           <style>{`
             @keyframes floatY {
               0% { transform: translateY(0); }
@@ -887,7 +961,7 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
           style={{
             position: 'absolute',
             top: 32,
-            right: 32,
+            right: 82,
             zIndex: 100,
             background: 'none',
             border: 'none',
