@@ -1,10 +1,10 @@
 import { AILevel } from '../types/game';
 import { getRandomAIMove, getGreedyAIMove, getMinimaxAIMove } from './AISurvival';
-dotenv.config();
-
+// Remove dotenv import for client-side code
+// Use Vite's environment variable system
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 // OpenAI API key: For production, use environment variables or secure config. For local dev, fallback to the key in openai_api.txt (do NOT commit real keys in production!)
-
+console.log('API Key:', import.meta.env.VITE_OPENAI_API_KEY);
 // OpenAI chat configuration
 export const OPENAI_CONFIG = {
   model: 'gpt-4.1-mini',
