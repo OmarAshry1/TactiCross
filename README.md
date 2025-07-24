@@ -24,17 +24,13 @@ The starting page features a beautiful animated mountain background using assets
 - **Map Selection**: Choose from different themed environments
 - **Player Customization**: Customize your game experience
 - **Settings**: Adjust game preferences
+- **Ai**: implemented using llm (OpenAi)
 
 ### Future Implemntations
 - **Tounament Mode**: Tournament mode to add up to 8 players
 - **Responsive mobile layout**: allow game to be played on mobile
 - **Online mode**: give a rating like in chess.com and allow 1v1 online according to rating
 - **Streak Leaderboard**: track Streaks made and display top streaks made and by who
-
-### Ai modes
-- **Easy**: makes random moves
-- **Medium**: uses Greedy Algorithm to make moves
-- **Hard**: uses Minmax Algorithm to make moves
 
 ## Getting Started
 
