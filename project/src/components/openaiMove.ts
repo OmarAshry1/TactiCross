@@ -1,6 +1,5 @@
 import { AILevel } from '../types/game';
 import { getRandomAIMove, getGreedyAIMove, getMinimaxAIMove } from './AISurvival';
-import dotenv from 'dotenv';
 dotenv.config();
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
