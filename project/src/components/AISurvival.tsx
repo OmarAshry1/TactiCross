@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import SoundButton from './SoundButton';
 import { AILevel, MapTheme } from '../types/game';
 import { Volume2, VolumeX } from 'lucide-react';
+import { getAIMove } from './openaiMove';
 
 interface AISurvivalProps {
   level: string;
@@ -379,6 +380,8 @@ const bgColors: Record<string, string> = {
 const hoverSound = '/assets/Menu-Background/music/button_hover.wav';
 const clickSound = '/assets/Menu-Background/music/Button_click.wav';
 
+export { getRandomAIMove, getGreedyAIMove, getMinimaxAIMove };
+
 export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlobalMusic, unmuteGlobalMusic, onAIGameBack }: AISurvivalProps & { onAIGameBack?: () => void }) {
   // Survival state
   const [currentMap, setCurrentMap] = useState<MapTheme>('lava');
@@ -606,114 +609,85 @@ export default function AISurvival({ level, onBack, mainVolume, uiSound, muteGlo
     }
   }, [gameWinner]);
 
+  // --- Track last board state for AI ---
+  const lastAIBoardRef = useRef<string>('');
+
   // --- Replace AI move effect ---
   useEffect(() => {
-    if (currentPlayer === 2 && !roundWinner && !isAnimatingCreature && !aiThinking && !gameWinner) {
+    // Flatten the board for comparison
+    const flatBoard = board.flat().map(cell => cell.owner === null ? 0 : cell.owner).join(' ');
+    // Only allow AI to move if it's their turn AND the board has changed since last AI move
+    if (currentPlayer === 2 && !roundWinner && !isAnimatingCreature && !aiThinking && !gameWinner && flatBoard !== lastAIBoardRef.current) {
+      lastAIBoardRef.current = flatBoard;
       setAiThinking(true);
-      
-      // Add timeout to prevent freezing
+      let cancelled = false;
       const timeoutId = setTimeout(() => {
         setAiThinking(false);
-        console.log('AI timeout - falling back to random move');
-        const fallbackMove = getRandomAIMove(board);
-        if (fallbackMove) {
-          setPendingAIMove(fallbackMove);
-          setSelected({ row: fallbackMove.from.row, col: fallbackMove.from.col });
+        if (!cancelled) {
+          console.log('AI timeout - falling back to random move');
+          const fallbackMove = getRandomAIMove(board);
+          if (fallbackMove) {
+            applyAIMove(fallbackMove);
+          }
         }
-      }, 3000); // 3 second timeout
-      
-      setTimeout(() => {
+      }, 7000);
+      (async () => {
         let aiMove = null;
         try {
-          if (level === 'easy') {
-            // Easy: 90% random, 10% greedy for occasional smart moves
-            if (Math.random() < 0.9) {
-              aiMove = getRandomAIMove(board);
-            } else {
-              aiMove = getGreedyAIMove(board);
-            }
-                  } else if (level === 'medium') {
-          // Medium: 70% greedy, 25% random, 5% minimax for variety (reduced minimax usage)
-          const rand = Math.random();
-          if (rand < 0.7) {
-            aiMove = getGreedyAIMove(board);
-          } else if (rand < 0.95) {
-            aiMove = getRandomAIMove(board);
-          } else {
-            aiMove = getMinimaxAIMove(board);
-          }
-        } else {
-          // Hard: 40% minimax, 50% greedy (blocking-first), 10% random for unpredictability
-          const rand = Math.random();
-          if (rand < 0.4) {
-            aiMove = getMinimaxAIMove(board);
-          } else if (rand < 0.9) {
-            aiMove = getGreedyAIMove(board); // This now prioritizes blocking
-          } else {
-            aiMove = getRandomAIMove(board);
-          }
-          if (!aiMove) aiMove = getRandomAIMove(board); // fallback if all fail
-        }
+          aiMove = await getAIMove(board, level as AILevel);
         } catch (error) {
-          console.error('AI algorithm error:', error);
-          aiMove = getRandomAIMove(board); // fallback on error
+          console.error('OpenAI API error:', error);
         }
-        
-        clearTimeout(timeoutId); // Clear the timeout if we got a move
-        
-        if (aiMove) {
-          // Determine if this is a blocking or winning move
-          const newBoard = board.map(row => row.map(cell => ({ ...cell })));
-          newBoard[aiMove.to.row][aiMove.to.col] = { owner: 2, moved: true };
-          newBoard[aiMove.from.row][aiMove.from.col] = { owner: null, moved: false };
-          
-          let moveType = "strategic";
-          if (checkWin(newBoard) === 2) {
-            moveType = "WINNING";
+        clearTimeout(timeoutId);
+        if (!cancelled) {
+          if (aiMove) {
+            applyAIMove(aiMove);
           } else {
-            // Check if it blocks a player win
-            for (let r = 0; r < 3; r++) {
-              for (let c = 0; c < 3; c++) {
-                if (newBoard[r][c].owner === 1) {
-                  for (let nr = 0; nr < 3; nr++) {
-                    for (let nc = 0; nc < 3; nc++) {
-                      if (newBoard[nr][nc].owner === null) {
-                        const testBoard = newBoard.map(row => row.map(cell => ({ ...cell })));
-                        testBoard[nr][nc] = { owner: 1, moved: true };
-                        testBoard[r][c] = { owner: null, moved: false };
-                        if (checkWin(testBoard) === 1) {
-                          moveType = "BLOCKING";
-                          break;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+            setAiThinking(false);
+            console.log('AI did not return a valid move, fallback to random.');
+            const fallbackMove = getRandomAIMove(board);
+            if (fallbackMove) {
+              applyAIMove(fallbackMove);
             }
           }
-          
-          console.log(`AI (${level}) chose ${moveType} move:`, aiMove);
-          setPendingAIMove(aiMove);
-          setSelected({ row: aiMove.from.row, col: aiMove.from.col });
-        } else {
-          setAiThinking(false);
-          console.log('AI did not return a valid move.');
         }
-      }, level === 'easy' ? 600 : level === 'medium' ? 400 : 200);
+      })();
+      return () => { cancelled = true; clearTimeout(timeoutId); };
     }
   }, [currentPlayer, roundWinner, isAnimatingCreature, gameWinner, level, board]);
 
-  // --- Apply AI move only after 'selected' is set ---
-  useEffect(() => {
-    if (pendingAIMove && selected && selected.row === pendingAIMove.from.row && selected.col === pendingAIMove.from.col) {
-      setTimeout(() => {
-        handleCellClick(pendingAIMove.to.row, pendingAIMove.to.col);
+  // --- Apply AI move directly ---
+  function applyAIMove(move: { from: { row: number, col: number }, to: { row: number, col: number } }) {
+    const { from, to } = move;
+    // Check legality: must move an AI piece to an empty cell
+    if (!board[from.row] || !board[from.row][from.col] || board[from.row][from.col].owner !== 2 ||
+        !board[to.row] || !board[to.row][to.col] || board[to.row][to.col].owner !== null) {
+      console.warn('LLM suggested illegal move, falling back to random valid move:', move);
+      const fallbackMove = getRandomAIMove(board);
+      if (fallbackMove) {
+        // Recursively apply the fallback move (guaranteed legal by getRandomAIMove)
+        applyAIMove(fallbackMove);
+      } else {
         setAiThinking(false);
-        setPendingAIMove(null);
-      }, 100);
+      }
+      return;
     }
-  }, [selected, pendingAIMove]);
+    const newBoard = board.map(r => r.map(c => ({ ...c })));
+    newBoard[to.row][to.col] = { owner: 2, moved: true };
+    newBoard[from.row][from.col] = { owner: null, moved: false };
+    setBoard(newBoard);
+    playPlaceSound();
+    // Check for round win
+    const winner = checkWin(newBoard);
+    if (winner) {
+      setRoundWinner(winner);
+      if (winner === 1) setPlayerRounds(r => r + 1);
+      else setAiRounds(r => r + 1);
+    } else {
+      setCurrentPlayer(1); // Switch back to player
+    }
+    setAiThinking(false);
+  }
 
   // Add at the top of the AISurvival component
   const audioRef = useRef<HTMLAudioElement | null>(null);
