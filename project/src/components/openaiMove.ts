@@ -3,7 +3,7 @@ import { getRandomAIMove, getGreedyAIMove, getMinimaxAIMove } from './AISurvival
 import dotenv from 'dotenv';
 dotenv.config();
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 // OpenAI API key: For production, use environment variables or secure config. For local dev, fallback to the key in openai_api.txt (do NOT commit real keys in production!)
 
 // OpenAI chat configuration
